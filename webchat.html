@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+<!-- Latest compiled and minified CSS -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+
+<!-- Optional theme -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap-theme.min.css">
+<link href="webchat.css" rel="stylesheet" type="text/css"/>
+</head>
+<body>
+<div class="chat-container col-sm-4 col-xs-6 col-md-3 col-lg-2">
+	<div class="chat-program">
+		<div class="panel panel-default chat-login-panel" id="chat-login-window">
+			<div class="panel-heading chat-login-panel-heading chat-panel-heading">
+				<h3 class="panel-title chat-panel-title">Chat</h3>
+			</div>
+			<div class="panel-body chat-login-panel-body">
+				<div class="input-group chat-login-input-group">
+					<input type="text" class="form-control chat-login-form" placeholder="Username" id="chat-login-name" aria-describedby="basic-addon1">
+					<input type="password" class="form-control chat-login-form" placeholder="Password" id="chat-login-password" aria-describedby="basic-addon1">
+					<div class="btn-group chat-login-btn-group" role="group" aria-label="chat-login-button">
+						<button type="button" class="btn btn-default chat-login-button" id="chat-login-button">Login</button>
+					</div>
+				</div>
+				<button type= "button" class="btn btn-default chat-login-button" id="chat-goto-new-account-button">Create New Account</button>
+			</div>
+			<div class="panel-footer chat-panel-footer" id="chat-login-footer">
+			</div>
+		</div>
+		<div class="panel panel-default chat-new-account-panel chat-panel" id="chat-new-account-window">
+			<div class= "panel-heading chat-panel-heading">
+				<h3 class="panel-title chat-panel-title">Chat</h3>
+			</div>
+			<div class="panel-body chat-new-account-panel-body">
+				<div class="input-group chat-new-account-input-group">
+					<input type="text" class="form-control chat-new-account-form" placeholder="Username" id="chat-new-account-name">
+					<input type="password" class="form-control chat-new-account-form" placeholder="Password" id="chat-new-account-password">
+					<input type="password" class="form-control chat-new-account-form" placeholder="Retype Password" id="chat-new-account-password2">
+					<div class="btn-group chat-new-account-btn-group" role="group" aria-label="chat-new-account-button">
+						<button type="button" class="btn btn-default chat-new-account-button" id="chat-new-account-button">Register</button>
+					</div>
+
+				</div>
+			</div>
+
+		</div>
+		<div class="panel panel-default chat-panel" id="chat-window">
+			<div class="panel-heading chat-panel-heading">
+				<h3 class="panel-title chat-panel-title">Chat</h3>
+			</div>
+			<div class="panel-body chat-panel-body" id= "chat-body">
+			</div>
+			<div class="panel-footer chat-panel-footer">
+				<div class="input-group chat-input-group">
+					<span class="input-group-btn chat-input-group-btn">
+						<button class="btn btn-default chat-btn" type="button" id ="chat-send-button">Send</button>
+					</span>
+					<input type="text" class="form-control chat-form-control" id="chat-input" aria-describedby="basic-addon1">
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- jQuery library -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+<script src="webchat.js"></script>
+</body>
+</html>
+
