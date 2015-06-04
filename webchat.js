@@ -1,4 +1,5 @@
 $(document).ready(function(){
+	$.support.cors = true;
 	var MYCLIENT = new client("http://localhost:8080/")
 	$("#chat-login-button").click(function() {
 		var name = $("#chat-login-name").val();
@@ -125,6 +126,9 @@ $(document).ready(function(){
 			case "/leave":
 				this.leave();
 				return;
+			case "/blocklist":
+				this.blocklist();
+				return;
 			default:
 				addMessage("Invalid Command.");
 		}
@@ -136,7 +140,12 @@ $(document).ready(function(){
 			url: uri,
 			headers: {"Authorization":this.token},
 			dataType: "text",
-			success: function(reason, stat, resp) {
+			success: function(data, stat, resp) {
+				if(resp.getResponseHeader("success") != "true") {
+					if (data != "") {
+						addMessage(JSON.parse(data));
+					}
+				}
 			},
 			error: function(resp, stat, err) {
 				addMessage(err);
@@ -160,7 +169,10 @@ $(document).ready(function(){
 					for (i=0; i < list.length;i++) {
 						addMessage(list[i]);
 					}
+				} else if (data != "") {
+					addMessage(JSON.parse(data));
 				}
+
 			},
 			error: function(resp, stat, err) {
 				addMessage(err);
@@ -185,13 +197,15 @@ $(document).ready(function(){
 			headers: {"Authorization":this.token},
 			success: function(data, stat, resp) {
 				if (resp.getResponseHeader("success") == "true") {
-					data = data.split("\n");
-					rmName = JSON.parse(data[0]);
-					list = JSON.parse(data[1]);
+					data = JSON.parse(data);
+					rmName = data.Room;
+					list = data.Clients;
 					addMessage("Room: " + rmName);
 					for (i=0; i < list.length;i++) {
 						addMessage(list[i]);
 					}
+				} else if (data != "") {
+					addMessage(JSON.parse(data));
 				}
 			},
 			error: function(resp, stat, err) {
@@ -265,6 +279,8 @@ $(document).ready(function(){
 			success: function(data, stat, resp) {
 				if (resp.getResponseHeader("success") == "true") {
 					resetLogin();
+				} else if (data != "") {
+					addMessage(JSON.parse(data));
 				}
 			},
 			error: function(resp, stat, err) {
@@ -284,6 +300,8 @@ $(document).ready(function(){
 			headers: {"Authorization":this.token},
 			success: function(data, stat, resp) {
 				if (resp.getResponseHeader("success") == "true") {
+				} else if (data != "") {
+					addMessage(JSON.parse(data));
 				}
 			},
 			error: function(resp, stat, err) {
@@ -305,6 +323,8 @@ $(document).ready(function(){
 			headers: {"Authorization":this.token},
 			success: function(data, stat, resp) {
 				if (resp.getResponseHeader("success") == "true") {
+				} else if (data != "") {
+					addMessage(JSON.parse(data));
 				}
 			},
 			error: function(resp, stat, err) {
@@ -315,6 +335,35 @@ $(document).ready(function(){
 			}
 		})
 	}
+	client.prototype.blocklist = function(){
+		var uri = this.server + "blocklist";
+		$.ajax({
+			type: "GET",
+			url: uri,
+			headers: {"Authorization":this.token},
+			success: function(data, stat, resp) {
+				if (resp.getResponseHeader("success") == "true") {
+					var list = JSON.parse(data);
+					addMessage("Block List:")
+					var i;
+					for (i=0; i < list.length;i++) {
+						addMessage(list[i]);
+					}
+				} else if (data != "") {
+					addMessage(JSON.parse(data));
+				}
+
+			},
+			error: function(resp, stat, err) {
+				addMessage(err);
+				if (err == "Unauthorized") {
+					resetLogin();
+				}
+			}
+		})
+	}
+
+
 	function login(name,password) {
 		var uri = MYCLIENT.server + "login";
 		var login = {Name:name, Password:password};
@@ -330,7 +379,7 @@ $(document).ready(function(){
 				loginMessage(err);
 			},
 			success: function(token, stat, resp) {
-				if(resp.getResponseHeader("success") == "true") {
+				if(resp.getResponseHeader("Success") == "true") {
 					MYCLIENT.token = JSON.parse(token);
 					$("#chat-login-window").hide();
 					$("#chat-window").show();
