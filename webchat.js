@@ -129,6 +129,20 @@ $(document).ready(function(){
 			case "/blocklist":
 				this.blocklist();
 				return;
+			case "/friend":
+				if(res.length < 2) {
+					addMessage("You must enter a name to friend.");
+					return;
+				}
+				this.friend(res[1]);
+				return;
+			case "/unfriend":
+				if(res.length < 2) {
+					addMessage("You must enter a name to unfriend.");
+					return;
+				}
+				this.unfriend(res[1]);
+				return;
 			default:
 				addMessage("Invalid Command.");
 		}
@@ -362,7 +376,54 @@ $(document).ready(function(){
 			}
 		})
 	}
-
+	client.prototype.friend = function(s){
+		var uri = this.server + "friend";
+		$.ajax({
+			type: "POST",
+			url: uri,
+			headers: {"Authorization": this.token},
+			data: JSON.stringify(s),
+			contentType: "application/json",
+			success: function(data, stat, resp) {
+				if (resp.getResponseHeader("success") == "true") {
+					addMessage(s + "is now on your friends list.");
+				}
+				if (resp.getResponseHeader("success") == "false" && data != "") {
+					addMessage(JSON.parse(data));
+				}
+			},
+			error: function(resp, stat, err) {
+				addMessage(err);
+				if (err == "Unauthorized") {
+					resetLogin();
+				}
+			}
+		})
+	}
+	client.prototype.unfriend = function(s) {
+		var uri = this.server + "unfriend";
+		$.ajax({
+			type: "POST",
+			url: uri,
+			headers: {"Authorization": this.token},
+			data: JSON.stringify(s),
+			contentType: "application/json",
+			success: function(data, stat, resp) {
+				if (resp.getResponseHeader("success") == "true") {
+					addMessage(s + "is no longer on your friends list.");
+				}
+				if(resp.getResponseHeader("success") == "false" && data != "") {
+					addMessage(JSON.parse(data));
+				}
+			},
+			error: function(resp, stat, err) {
+				addMessage(err);
+				if(err == "Unauthorized") {
+					resetLogin();
+				}
+			}
+		})
+	}
 
 	function login(name,password) {
 		var uri = MYCLIENT.server + "login";
