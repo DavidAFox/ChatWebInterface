@@ -4,7 +4,7 @@ body html {
 }
 
 .chat-container {
-	height: 500px;
+	height: 700px;
 	padding: 0;
 	margin: 0;
 }
@@ -107,5 +107,21 @@ body html {
 }
 
 .chat-new-account-button {
+	width: 100%;
+}
+
+.chat-row {
+	width: 100%;
+	height: 100%;
+	margin: 0;
+	padding: 0;
+}
+
+.chat-col {
+	margin: 0;
+	padding: 0;
+	height: 100%;
+}
+#chat-friend-body {
 	width: 100%;
 }

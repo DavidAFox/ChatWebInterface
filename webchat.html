@@ -6,10 +6,11 @@
 
 <!-- Optional theme -->
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap-theme.min.css">
-<link href="webchat.css" rel="stylesheet" type="text/css"/>
+<link href="webchat.css" rel="stylesheet" title= "webchat" type="text/css"/>
+<link href="jquery.contextMenu.css" rel="stylesheet" type="text/css"/>
 </head>
 <body>
-<div class="chat-container col-sm-4 col-xs-6 col-md-3 col-lg-2">
+<div class="chat-container col-sm-6 col-xs-8 col-md-6 col-lg-6">
 	<div class="chat-program">
 		<div class="panel panel-default chat-login-panel" id="chat-login-window">
 			<div class="panel-heading chat-login-panel-heading chat-panel-heading">
@@ -22,8 +23,9 @@
 					<div class="btn-group chat-login-btn-group" role="group" aria-label="chat-login-button">
 						<button type="button" class="btn btn-default chat-login-button" id="chat-login-button">Login</button>
 					</div>
-				</div>
 				<button type= "button" class="btn btn-default chat-login-button" id="chat-goto-new-account-button">Create New Account</button>
+
+				</div>
 			</div>
 			<div class="panel-footer chat-panel-footer" id="chat-login-footer">
 			</div>
@@ -45,20 +47,47 @@
 			</div>
 
 		</div>
-		<div class="panel panel-default chat-panel" id="chat-window">
-			<div class="panel-heading chat-panel-heading">
-				<h3 class="panel-title chat-panel-title">Chat</h3>
-			</div>
-			<div class="panel-body chat-panel-body" id= "chat-body">
-			</div>
-			<div class="panel-footer chat-panel-footer">
-				<div class="input-group chat-input-group">
-					<span class="input-group-btn chat-input-group-btn">
-						<button class="btn btn-default chat-btn" type="button" id ="chat-send-button">Send</button>
-					</span>
-					<input type="text" class="form-control chat-form-control" id="chat-input" aria-describedby="basic-addon1">
+		<div class= "row chat-row"id= "chat-window">
+			<div class="col-sm-6 col-xs-6 col-md-6 col-lg-6 chat-col">
+			<div class="panel panel-default chat-panel" id="chat-panel">
+				<div class="panel-heading chat-panel-heading">
+					<h3 class="panel-title chat-panel-title">Chat</h3>
+				</div>
+				<div class="panel-body chat-panel-body" id= "chat-body">
+				</div>
+				<div class="panel-footer chat-panel-footer">
+					<div class="input-group chat-input-group">
+						<span class="input-group-btn chat-input-group-btn">
+							<button class="btn btn-default chat-btn" type="button" id ="chat-send-button">Send</button>
+						</span>
+						<input type="text" class="form-control chat-form-control" id="chat-input" aria-describedby="basic-addon1">
+					</div>
 				</div>
 			</div>
+		</div>
+			<div class="col-sm-6 col-xs-6 col-md-6 col-lg-6 chat-col">
+			<div class="panel panel-default chat-panel">
+			  <div class="panel-heading">
+			    <h3 class="panel-title">Status</h3>
+			  </div>
+			  <div class="panel-body">
+				  <div class="panel panel-default" id = "chat-room-panel">
+				  <div class="panel-heading">
+				    <h3 class="panel-title" id = "chat-room-title">Room</h3>
+				  </div>
+				  <div class="panel-body" id="chat-room-body">
+				  </div>
+				</div>
+				<div class="panel panel-default" id= "chat-friend-panel">
+				  <div class="panel-heading">
+				    <h3 class="panel-title">Friend List</h3>
+				  </div>
+				  <div class="panel-body" id = "chat-friend-body">
+				  </div>
+				</div>
+			  </div>
+			</div>
+		</div>
 		</div>
 	</div>
 </div>
@@ -66,6 +95,8 @@
 <!-- jQuery library -->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
 <script src="webchat.js"></script>
+<script src="contextMenu.js" type="text/javascript"></script>
+<script src="jquery.ui.position.js" type= "text/javascript"></script>
 </body>
 </html>
 

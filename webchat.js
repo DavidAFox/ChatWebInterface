@@ -1,6 +1,8 @@
 $(document).ready(function(){
 	$.support.cors = true;
 	var MYCLIENT = new client("http://localhost:8080/")
+	var COLORGEN = new colorGenerator()
+	var CLIENTLIST = new Object()
 	$("#chat-login-button").click(function() {
 		var name = $("#chat-login-name").val();
 		var password = $("#chat-login-password").val();
@@ -47,17 +49,154 @@ $(document).ready(function(){
 			el.value = "";
 		}
 	})
+	$(".chat-client-name").click(function() {
+	})
 	$("#chat-send-button").click(function() {
 		var el = document.getElementById("chat-input");
 		MYCLIENT.handleInput(el.value);
 		el.value = "";
 	})
+	$(".chat-client-name").contextMenu({
+		selector: ".chat-client-name",
+		callback: function(key, options) {
+			switch (key) {
+				case "tell":
+					menuTell(this.text());
+					return;
+				case "block":
+					menuBlock(this.text());
+					return;
+				case "unblock":
+					menuUnblock(this.text());
+					return;
+				case "friend":
+					menuFriend(this.text());
+					return;
+				case "unfriend":
+					menuUnfriend(this.text());
+					return;
+			}	
+		},
+		items: {
+			tell: {name: "Tell"},
+			block: {name: "Block"},
+			unblock: {name: "Unblock"},
+			friend: {name: "Friend"},
+			unfriend: {name: "Unfriend"}
+		}
+	})
+	function menuTell(name) {
+		var el = document.getElementById("chat-input");
+		el.value = "/tell " + name + " ";
+		$("#chat-input").focus();
+	}
+	function menuBlock(name) {
+		var uri = MYCLIENT.server + "block";
+		$.ajax({
+			type: "POST",
+			url: uri,
+			data: JSON.stringify(name),
+			contentType: "application/json",
+			headers: {"Authorization":MYCLIENT.token},
+			success: function(data, stat, resp) {
+				if (resp.getResponseHeader("success") == "true") {
+					addMessage("Now blocking " + clientHTML(name) + ".");
+				}
+				if (resp.getResponseHeader("code") == "30") {
+					addMessage("You are already blocking " + clientHTML(name) + ".");
+				}
+				if (resp.getResponseHeader("code") == "32") {
+					addMessage("You can't block yourself.");
+				}
+			},
+			error: function(resp, stat, err) {
+				addMessage(err);
+				if (err == "Unauthorized") {
+					resetLogin();
+				}
+			}
+		})
+	}
+	function menuUnblock(name) {
+		var uri = MYCLIENT.server + "unblock";
+		$.ajax({
+			type: "POST",
+			url: uri,
+			data: JSON.stringify(name),
+			contentType: "application/json",
+			headers: {"Authorization":MYCLIENT.token},
+			success: function(data, stat, resp) {
+				if (resp.getResponseHeader("success") == "true") {
+					addMessage("No longer blocking " + clientHTML(name) + ".");
+				}
+				if (resp.getResponseHeader("code") == "31") {
+					addMessage("You are not blocking " + clientHTML(name) + ".");
+				}
+			},
+			error: function(resp, stat, err) {
+				addMessage(err);
+				if (err == "Unauthorized") {
+					resetLogin();
+				}
+			}
+		})
+
+	}
+	function menuFriend(name) {
+		var uri = MYCLIENT.server + "friend";
+		$.ajax({
+			type: "POST",
+			url: uri,
+			headers: {"Authorization": MYCLIENT.token},
+			data: JSON.stringify(name),
+			contentType: "application/json",
+			success: function(data, stat, resp) {
+				if (resp.getResponseHeader("success") == "true") {
+					addMessage(clientHTML(name) + " is now on your friends list.");
+				}
+				if (resp.getResponseHeader("success") == "false" && data != "") {
+					addMessage(JSON.parse(data));
+				}
+			},
+			error: function(resp, stat, err) {
+				addMessage(err);
+				if (err == "Unauthorized") {
+					resetLogin();
+				}
+			}
+		})
+	}
+	function menuUnfriend(name) {
+		var uri = MYCLIENT.server + "unfriend";
+		$.ajax({
+			type: "POST",
+			url: uri,
+			headers: {"Authorization": MYCLIENT.token},
+			data: JSON.stringify(name),
+			contentType: "application/json",
+			success: function(data, stat, resp) {
+				if (resp.getResponseHeader("success") == "true") {
+					addMessage(clientHTML(name) + " is no longer on your friends list.");
+				}
+				if(resp.getResponseHeader("success") == "false" && data != "") {
+					addMessage(JSON.parse(data));
+				}
+			},
+			error: function(resp, stat, err) {
+				addMessage(err);
+				if(err == "Unauthorized") {
+					resetLogin();
+				}
+			}
+		})
+	}
 	function resetLogin(){
 		$("#chat-window").hide();
 		$("#chat-new-account-window").hide();
 		$("#chat-login-window").show();
 		MYCLIENT.token = "";
 		clearInterval(MYCLIENT.messageGetter);
+		document.getElementById("chat-body").innerHTML = "";
 	}
 
 	function addMessage(message) {
@@ -81,6 +220,38 @@ $(document).ready(function(){
 		this.token = "";
 		this.inRoom = false;
 
+	}
+	function getStyleSheet(unique_title) {
+		for(var i=0; i<document.styleSheets.length; i++) {
+			var sheet = document.styleSheets[i];
+			if(sheet.title == unique_title) {
+				return sheet;
+			}
+		}
+	}
+	function clientHTML(name) {
+		if (CLIENTLIST[name] === undefined) {
+			var color = COLORGEN.getColor();
+			var sheet = getStyleSheet("webchat");
+			sheet.insertRule(".chat-client-name-" + name + " { color: " + color + ";}", 0);
+			CLIENTLIST[name] = color;
+		}
+		return "<span class = 'chat-client-name chat-client-name-" + name + "'>" + name + "</span>";
+	}
+
+
+
+	function colorGenerator() {
+		this.current = 0;
+		this.colors = ["Red", "Green", "Blue", "Orange", "Brown", "Purple", "LightSeaGreen", "Black"];
+	}
+	colorGenerator.prototype.getColor = function() {
+		if (this.current < this.colors.length) {
+			this.current += 1;
+		} else {
+			this.current = 0;
+		}
+		return this.colors[this.current];
 	}
 	client.prototype.handleInput = function (command) {
 		if(typeof command != "string") {
@@ -143,9 +314,71 @@ $(document).ready(function(){
 				}
 				this.unfriend(res[1]);
 				return;
+			case "/tell":
+				if(res.length < 3) {
+					addMessage("You must enter a client and a message.");
+					return;
+				}
+				this.tell(res[1],res.slice(2).join(" "));
+				return;
 			default:
 				addMessage("Invalid Command.");
 		}
+	}
+	client.prototype.updateRoom = function() {
+		var list;
+		var i;
+		var uri = this.server + "rooms/who";
+		$.ajax({
+			type: "GET",
+			url: uri,
+			headers: {"Authorization":this.token},
+			success: function(data, stat, resp) {
+				if (resp.getResponseHeader("success") == "true") {
+					data = JSON.parse(data);
+					rmName = data.Room;
+					list = data.Clients;
+					document.getElementById("chat-room-body").innerHTML = "";
+					document.getElementById("chat-room-title").innerHTML = "Room-" + rmName;
+					for (i=0; i < list.length;i++) {
+						$("#chat-room-body").append(clientHTML(list[i]) + "<br>");
+					}
+				} else if (data != "") {
+					addMessage(JSON.parse(data));
+				}
+			},
+			error: function(resp, stat, err) {
+				if (err == "Unauthorized") {
+					resetLogin();
+				}
+			}
+		})
+	}
+	client.prototype.updateFriendList = function() {
+		var list;
+		var i;
+		var uri = this.server + "friendlist";
+		$.ajax({
+			type: "GET",
+			url: uri,
+			headers: {"Authorization": this.token},
+			success: function(data, stat, resp){
+				if (resp.getResponseHeader("success") == "true") {
+					data = JSON.parse(data);
+					document.getElementById("chat-friend-body").innerHTML = "";
+					for (i = 0;i <data.length;i++) {
+						$("#chat-friend-body").append(clientHTML(data[i].Name) + "- " + data[i].Room +"<br>");
+					}
+				} else if (data!= "") {
+					addMessage(JSON.parse(data));
+				}
+			},
+			error: function(resp, stat, err) {
+				if (err == "unauthorized") {
+					resetLogin();
+				}
+			}
+		})
 	}
 	client.prototype.join = function(s){
 		var uri = this.server + "rooms/" + s + "/join";
@@ -216,7 +449,7 @@ $(document).ready(function(){
 					list = data.Clients;
 					addMessage("Room: " + rmName);
 					for (i=0; i < list.length;i++) {
-						addMessage(list[i]);
+						addMessage(clientHTML(list[i]));
 					}
 				} else if (data != "") {
 					addMessage(JSON.parse(data));
@@ -241,10 +474,10 @@ $(document).ready(function(){
 			headers: {"Authorization":this.token},
 			success: function(data, stat, resp) {
 				if (resp.getResponseHeader("success") == "true") {
-					addMessage("Now blocking " + s + ".");
+					addMessage("Now blocking " + clientHTML(s) + ".");
 				}
 				if (resp.getResponseHeader("code") == "30") {
-					addMessage("You are already blocking " + s + ".");
+					addMessage("You are already blocking " + clientHTML(s) + ".");
 				}
 				if (resp.getResponseHeader("code") == "32") {
 					addMessage("You can't block yourself.");
@@ -269,10 +502,10 @@ $(document).ready(function(){
 			headers: {"Authorization":this.token},
 			success: function(data, stat, resp) {
 				if (resp.getResponseHeader("success") == "true") {
-					addMessage("No longer blocking " + s + ".");
+					addMessage("No longer blocking " + clientHTML(s) + ".");
 				}
 				if (resp.getResponseHeader("code") == "31") {
-					addMessage("You are not blocking " + s + ".");
+					addMessage("You are not blocking " + clientHTML(s) + ".");
 				}
 			},
 			error: function(resp, stat, err) {
@@ -327,6 +560,30 @@ $(document).ready(function(){
 		})
 
 	}
+	client.prototype.tell = function(client, message) {
+		var uri = this.server + "tell";
+		if (client === undefined || message === undefined) {
+			addMessage("You must enter a client and a message");
+		}
+		$.ajax({
+			type: "POST",
+			url: uri,
+			data: JSON.stringify(client) + JSON.stringify(message),
+			contentType: "application/json",
+			headers: {"Authorization":this.token},
+			success: function(data, stat, resp) {
+				if (resp.getResponseHeader("success") == "false" && data !== undefined) {
+					addMessage(JSON.parse(data));
+				}
+			},
+			error: function(resp, stat, err) {
+				addMessage(err);
+				if (err == "Unauthorized") {
+					resetLogin();
+				}
+			}
+		})
+	}
 	client.prototype.send = function(s){
 		var uri = this.server + "messages";
 		$.ajax({
@@ -361,7 +618,7 @@ $(document).ready(function(){
 					addMessage("Block List:")
 					var i;
 					for (i=0; i < list.length;i++) {
-						addMessage(list[i]);
+						addMessage(clientHTML(list[i]));
 					}
 				} else if (data != "") {
 					addMessage(JSON.parse(data));
@@ -386,7 +643,7 @@ $(document).ready(function(){
 			contentType: "application/json",
 			success: function(data, stat, resp) {
 				if (resp.getResponseHeader("success") == "true") {
-					addMessage(s + "is now on your friends list.");
+					addMessage(clientHTML(s) + " is now on your friends list.");
 				}
 				if (resp.getResponseHeader("success") == "false" && data != "") {
 					addMessage(JSON.parse(data));
@@ -410,7 +667,7 @@ $(document).ready(function(){
 			contentType: "application/json",
 			success: function(data, stat, resp) {
 				if (resp.getResponseHeader("success") == "true") {
-					addMessage(s + "is no longer on your friends list.");
+					addMessage(clientHTML(s) + " is no longer on your friends list.");
 				}
 				if(resp.getResponseHeader("success") == "false" && data != "") {
 					addMessage(JSON.parse(data));
@@ -442,9 +699,11 @@ $(document).ready(function(){
 			success: function(token, stat, resp) {
 				if(resp.getResponseHeader("Success") == "true") {
 					MYCLIENT.token = JSON.parse(token);
+					MYCLIENT.updateRoom();
+					MYCLIENT.updateFriendList();
 					$("#chat-login-window").hide();
 					$("#chat-window").show();
-					MYCLIENT.messageGetter = setInterval(getMessages, 1000);
+					MYCLIENT.messageGetter = setInterval(update, 1000);
 					return
 				}
 				if(resp.getResponseHeader("code") == "21") {
@@ -488,6 +747,8 @@ $(document).ready(function(){
 		if (MYCLIENT.token == "") {
 			return;
 		}
+//		MYCLIENT.updateRoom();
+//		MYCLIENT.updateFriendList();
 		var uri = MYCLIENT.server + "messages";
 		$.ajax({
 			type: "GET",
@@ -505,6 +766,65 @@ $(document).ready(function(){
 					for (i = 0; i<messages.length;i++) {
 						addMessage(messages[i]);
 					}
+				}
+			}
+		})
+	}
+	function update() {
+		if (MYCLIENT.token == "") {
+			return;
+		}
+		var uri = MYCLIENT.server + "update";
+		stuff = ["friendlist","messages","who"]
+		$.ajax({
+			type: "POST",
+			url: uri,
+			data: JSON.stringify(stuff),
+			headers: {"Authorization":MYCLIENT.token},
+			success: function(data, stat, resp) {
+				if (resp.getResponseHeader("success") == "true") {
+					data = JSON.parse(data);
+					rmName = data.who.Room;
+					list = data.who.Clients;
+					document.getElementById("chat-room-body").innerHTML = "";
+					document.getElementById("chat-room-title").innerHTML = "Room-" + rmName;
+					for (i=0; i < list.length;i++) {
+						$("#chat-room-body").append(clientHTML(list[i]) + "<br>");
+					}
+					document.getElementById("chat-friend-body").innerHTML = "";
+					for (i = 0;i <data.friendlist.length;i++) {
+						$("#chat-friend-body").append(clientHTML(data.friendlist[i].Name) + "- " + data.friendlist[i].Room +"<br>");
+					}
+					var messages = data.messages;
+					for (i = 0; i<messages.length;i++) {
+						switch (messages[i].Type) {
+						case "Tell":
+							if (messages[i].ToReciever) {
+								addMessage(messages[i].TimeString + "[From " + clientHTML(messages[i].Sender) + "]>>>: " + messages[i].Text);
+							} else {
+								addMessage(messages[i].TimeString + "<<<[To " + clientHTML(messages[i].Reciever) + "]: " + messages[i].Text);
+							}
+							break;
+						case "Join":
+							addMessage(clientHTML(messages[i].Subject) + " " + messages[i].Text);
+							break;
+						case "Server":
+							addMessage(messages[i].Text);
+							break;
+						case "Send":
+							addMessage(messages[i].TimeString + " [" + clientHTML(messages[i].Sender) + "]: " + messages[i].Text);
+							break;
+						}
+
+//						addMessage(messages[i]);
+					}
+				} else {
+					addMessages("Error Updating");
+				}
+			},
+			error: function (resp, stat, err) {
+				if (err == "Unauthorized") {
+					resetLogin();
 				}
 			}
 		})
