@@ -239,7 +239,7 @@ $(document).ready(function(){
 		var conn
 		var messageGetter
 		function setUpConn() {
-			if ('WebSocket' in window || config.connection === 'ajax'){
+			if ('WebSocket' in window || config.connection !== 'ajax'){
 				conn = NewWebsocketConnection({
 					server:  config.server,
 					scheme: config.scheme,
